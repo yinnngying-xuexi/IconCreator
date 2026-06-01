@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 
 import { Icon } from "@iconify/react";
 import type { Ai3dIconPresetsConfig, Ai3dIconStyleConfig, AiImageAspectRatio, AiImageResolution } from "@iconcraft/shared";
@@ -17,6 +18,74 @@ const RATIO_OPTIONS: AiImageAspectRatio[] = ["1:1", "16:9", "9:16", "4:3", "3:4"
 const CUSTOM_STYLE_ID = "__custom_prompt_style";
 const DEFAULT_CUSTOM_PROMPT =
   "生成一个单独的「{生成物体}」三维图标，主体居中，只呈现该物体本身。整体以「{主色调}」为主色。画面干净，结构清晰，适合用于产品界面。";
+
+const STYLE_PREVIEWS: Record<
+  string,
+  {
+    accent: string;
+    icon: string;
+    imageSrc: string;
+    label: string;
+  }
+> = {
+  "light three-dimensional texture": {
+    accent: "#8bb7ff",
+    icon: "lucide:box",
+    imageSrc: "/images/ai-style-previews/light-3d-texture.jpeg",
+    label: "soft 3D",
+  },
+  "glass texture": {
+    accent: "#7dd3fc",
+    icon: "lucide:gem",
+    imageSrc: "/images/ai-style-previews/glass-texture.jpeg",
+    label: "glass",
+  },
+  "Matte isometric texture": {
+    accent: "#c4b5fd",
+    icon: "lucide:cuboid",
+    imageSrc: "/images/ai-style-previews/matte-isometric-texture.jpeg",
+    label: "matte iso",
+  },
+  "Linear icon style": {
+    accent: "#f8fafc",
+    icon: "lucide:scan-line",
+    imageSrc: "/images/ai-style-previews/linear-icon-style.jpeg",
+    label: "linear",
+  },
+  "Low-saturation and transparent illustration icons": {
+    accent: "#86efac",
+    icon: "lucide:layers-3",
+    imageSrc: "/images/ai-style-previews/low-saturation-transparent.jpeg",
+    label: "pastel",
+  },
+  "Stereoscopic cartoon Q version": {
+    accent: "#f9a8d4",
+    icon: "lucide:heart",
+    imageSrc: "/images/ai-style-previews/stereoscopic-cartoon-q.jpeg",
+    label: "cartoon",
+  },
+  "2.5D icons": {
+    accent: "#facc15",
+    icon: "lucide:boxes",
+    imageSrc: "/images/ai-style-previews/2-5d-icons.jpeg",
+    label: "2.5D",
+  },
+};
+
+function previewForStyle(styleId: string) {
+  return (
+    STYLE_PREVIEWS[styleId] ?? {
+      accent: "#d4d4d4",
+      icon: "lucide:sparkles",
+      imageSrc: "",
+      label: "preview",
+    }
+  );
+}
+
+function stylePreviewId(styleId: string) {
+  return `style-preview-${styleId.replace(/[^a-zA-Z0-9_-]+/g, "-")}`;
+}
 
 function applyStyleVars(template: Ai3dIconStyleConfig, values: { object: string; color: string }) {
   const replacements: Record<string, string> = {
@@ -175,20 +244,50 @@ export function AiGenerateSection({
             <div>
               <div className="ai-field__label mb-2">提示词风格</div>
               <div className="flex flex-wrap gap-2">
-                {stylesCatalog.styles.map((variant) => (
-                  <button
-                    key={variant.id}
-                    type="button"
-                    className={`chip${!customStyleActive && variant.id === activeVariant?.id ? " is-active" : ""}`}
-                    title={variant.label}
-                    onClick={() => {
-                      setCustomStyleActive(false);
-                      setSelectedStyleId(variant.id);
-                    }}
-                  >
-                    {variant.label}
-                  </button>
-                ))}
+                {stylesCatalog.styles.map((variant) => {
+                  const preview = previewForStyle(variant.id);
+                  const previewId = stylePreviewId(variant.id);
+                  return (
+                    <span className="ai-style-preview-anchor" key={variant.id}>
+                      <button
+                        type="button"
+                        className={`chip${!customStyleActive && variant.id === activeVariant?.id ? " is-active" : ""}`}
+                        aria-describedby={previewId}
+                        onClick={() => {
+                          setCustomStyleActive(false);
+                          setSelectedStyleId(variant.id);
+                        }}
+                      >
+                        {variant.label}
+                      </button>
+                      <span
+                        className="ai-style-preview"
+                        id={previewId}
+                        role="tooltip"
+                      >
+                        <span
+                          className="ai-style-preview__thumb"
+                          style={{ "--style-accent": preview.accent } as CSSProperties}
+                        >
+                          {preview.imageSrc ? (
+                            <img
+                              alt={`${variant.label} 风格缩略图`}
+                              src={preview.imageSrc}
+                              onError={(event) => {
+                                event.currentTarget.hidden = true;
+                              }}
+                            />
+                          ) : null}
+                          <Icon icon={preview.icon} width="40" />
+                        </span>
+                        <span className="ai-style-preview__meta">
+                          <span className="ai-style-preview__name">{variant.label}</span>
+                          <span className="ai-style-preview__tag">{preview.label}</span>
+                        </span>
+                      </span>
+                    </span>
+                  );
+                })}
                 <button
                   type="button"
                   className={`chip${customStyleActive ? " is-active" : ""}`}
