@@ -114,6 +114,7 @@ export function AiGenerateSection({
   const [promptPreviewOpen, setPromptPreviewOpen] = useState(false);
   const [customStyleActive, setCustomStyleActive] = useState(false);
   const [customPromptTemplate, setCustomPromptTemplate] = useState(DEFAULT_CUSTOM_PROMPT);
+  const [hoveredStylePreviewId, setHoveredStylePreviewId] = useState<string | null>(null);
 
   const aiSessions = useAiGenerationHistoryStore((state) => state.sessions);
   const addAiSession = useAiGenerationHistoryStore((state) => state.addSession);
@@ -247,8 +248,14 @@ export function AiGenerateSection({
                 {stylesCatalog.styles.map((variant) => {
                   const preview = previewForStyle(variant.id);
                   const previewId = stylePreviewId(variant.id);
+                  const previewVisible = hoveredStylePreviewId === variant.id;
                   return (
-                    <span className="ai-style-preview-anchor" key={variant.id}>
+                    <span
+                      className="ai-style-preview-anchor"
+                      key={variant.id}
+                      onMouseEnter={() => setHoveredStylePreviewId(variant.id)}
+                      onMouseLeave={() => setHoveredStylePreviewId(null)}
+                    >
                       <button
                         type="button"
                         className={`chip${!customStyleActive && variant.id === activeVariant?.id ? " is-active" : ""}`}
@@ -261,7 +268,7 @@ export function AiGenerateSection({
                         {variant.label}
                       </button>
                       <span
-                        className="ai-style-preview"
+                        className={`ai-style-preview${previewVisible ? " is-visible" : ""}`}
                         id={previewId}
                         role="tooltip"
                       >
@@ -292,7 +299,9 @@ export function AiGenerateSection({
                   type="button"
                   className={`chip${customStyleActive ? " is-active" : ""}`}
                   title="自行编写提示词模板"
-                  onClick={() => setCustomStyleActive(true)}
+                  onClick={() => {
+                    setCustomStyleActive(true);
+                  }}
                 >
                   自定义
                 </button>

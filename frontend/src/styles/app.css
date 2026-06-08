@@ -371,7 +371,7 @@ textarea {
 }
 
 .ai-style-preview-anchor:hover .ai-style-preview,
-.ai-style-preview-anchor:focus-within .ai-style-preview {
+.ai-style-preview.is-visible {
   opacity: 1;
   transform: translateX(-50%) translateY(0) scale(1);
 }
